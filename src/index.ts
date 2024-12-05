@@ -29,6 +29,9 @@ async function run(lvid: string) {
   }
 
   const ws = new WebSocket(wsUri);
+  handleCtrlC(() => {
+    ws.close();
+  });
   ws.on("open", () => {
     ws.send(startWatch);
     console.info("INFO", "ws:", `⇑ ${startWatch}`);
@@ -74,7 +77,7 @@ async function run(lvid: string) {
             console.log("INFO", "FFmpeg:", JSON.stringify(progress));
           })
           .on("error", (err) => {
-            console.error("ERROR", "FFmpeg:", err);
+            console.error("ERROR", "FFmpeg:", err.message);
             process.exit(1);
           })
           .run();
@@ -91,7 +94,7 @@ async function run(lvid: string) {
   }
 
   console.log("🎉 DONE!");
-  process.exit();
+  process.exit(0);
 }
 
 async function getWebSocketUri(lvid: string): Promise<string | undefined> {
@@ -107,7 +110,7 @@ async function getWebSocketUri(lvid: string): Promise<string | undefined> {
     headers,
   });
   const match = res.data
-    .match(/wss:\/\/[\w./?=+\-&#%]+/)?.[0]
+    .match(/wss:\/\/[\w./?=+\-&#%]+/g)?.[0]
     ?.replace("&quot", "");
   return match;
 }
@@ -116,6 +119,15 @@ const wait = (duration: number) =>
   new Promise<void>((resolve) => {
     setTimeout(() => resolve(), duration);
   });
+
+const handleCtrlC = (f: () => void) => {
+  process.on("SIGINT", () => {
+    f();
+    setTimeout(() => {
+      process.exit(1);
+    }, 10_000);
+  });
+};
 
 const startWatch = JSON.stringify({
   type: "startWatching",
