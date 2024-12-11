@@ -1,3 +1,6 @@
+ニコ生の録画ツールはGoで書き直したので、こちらはArchivedします。<br>
+https://github.com/genkaieng/namarec
+
 # niconama-recorder
 ニコ生の配信ID (例: `lv123456789`) を指定して録画するツール
 
